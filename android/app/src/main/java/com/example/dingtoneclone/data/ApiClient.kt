@@ -13,7 +13,7 @@ import retrofit2.converter.kotlinx.serialization.asConverterFactory
 // ---- Replace with your actual backend URL ----
 // For local dev with emulator: "http://10.0.2.2:5000/api/"
 // For production: "https://your-backend.railway.app/api/"
-private const val BASE_URL = "http://10.0.2.2:5000/api/"
+private const val BASE_URL = "https://dingtone.onrender.com/api/"
 
 object ApiClient {
 
