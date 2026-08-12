@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "421864268048",
+    "project_id": "dingtone-clone",
+    "storage_bucket": "dingtone-clone.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:421864268048:android:be770efa53734b6a178595",
+        "android_client_info": {
+          "package_name": "com.example.dingtoneclone"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDswz2wgCxcUdrchf0XSYjRdvxRHsDOHWY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
