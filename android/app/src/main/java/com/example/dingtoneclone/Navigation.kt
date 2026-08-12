@@ -80,7 +80,7 @@ private fun MainAppScaffold(onLogout: () -> Unit) {
             onBack     = { backStack.removeLastOrNull() },
             modifier   = Modifier.padding(padding),
             entryProvider = entryProvider {
-                entry<Dashboard> { DashboardScreen() }
+                entry<Dashboard> { DashboardScreen(onLogout = onLogout) }
                 entry<Numbers>   { NumbersScreen() }
                 entry<Calls>     { CallsScreen() }
             }

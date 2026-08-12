@@ -7,6 +7,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.*
@@ -25,7 +26,7 @@ import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun DashboardScreen() {
+fun DashboardScreen(onLogout: (() -> Unit)? = null) {
     val scope = rememberCoroutineScope()
     var messages by remember { mutableStateOf<List<SmsMessage>>(emptyList()) }
     var isLoading by remember { mutableStateOf(false) }
@@ -74,6 +75,11 @@ fun DashboardScreen() {
                     }
                     IconButton(onClick = { loadInbox() }) {
                         Icon(Icons.Default.Refresh, contentDescription = "Refresh", tint = Color(0xFF9D7CE0))
+                    }
+                    if (onLogout != null) {
+                        IconButton(onClick = onLogout) {
+                            Icon(Icons.AutoMirrored.Filled.ExitToApp, contentDescription = "Logout", tint = Color(0xFFFF6B6B))
+                        }
                     }
                 }
             )
