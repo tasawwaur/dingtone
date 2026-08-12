@@ -36,13 +36,25 @@ app.use('/webhook/sms', smsRoutes);
 app.use('/webhook/voice', callRoutes);
 
 const path = require('path');
+const fs = require('fs');
 
-// Static assets (Web Portal)
-app.use(express.static(path.join(__dirname, 'public')));
+// Robust Static assets resolution (Web Portal)
+const publicPath = fs.existsSync(path.join(__dirname, 'public')) 
+  ? path.join(__dirname, 'public') 
+  : fs.existsSync(path.join(process.cwd(), 'public'))
+    ? path.join(process.cwd(), 'public')
+    : path.join(process.cwd(), 'backend', 'public');
+
+app.use(express.static(publicPath));
 
 // Web Portal main route
 app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+  const indexPath = path.join(publicPath, 'index.html');
+  if (fs.existsSync(indexPath)) {
+    res.sendFile(indexPath);
+  } else {
+    res.json({ status: 'ok', message: 'Dingtone Clone API is running! 🚀', version: '1.0.0' });
+  }
 });
 
 // Health check API

@@ -9,7 +9,10 @@ app/build/
 *.iml
 .idea/
 local.properties
+android/jdk17home/
+android/download_jdk.js
 
 # OS
 .DS_Store
 Thumbs.db
+
