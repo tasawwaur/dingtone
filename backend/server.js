@@ -40,6 +40,11 @@ const path = require('path');
 // Static assets (Web Portal)
 app.use(express.static(path.join(__dirname, 'public')));
 
+// Web Portal main route
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
 // Health check API
 app.get('/api/health', (req, res) => {
   res.json({ 
