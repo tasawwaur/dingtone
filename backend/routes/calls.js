@@ -79,20 +79,19 @@ router.post('/make', verifyToken, async (req, res) => {
 
 // GET /api/calls/history - Get call history for user
 router.get('/history', verifyToken, async (req, res) => {
+  let calls = [];
   try {
     const snapshot = await db.collection('calls')
       .where('userId', '==', req.user.uid)
       .get();
 
-    let calls = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    calls = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
     calls.sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
     if (calls.length > 50) calls = calls.slice(0, 50);
-
-    return res.json({ calls });
   } catch (error) {
-    console.error('Call history error:', error);
-    return res.json({ calls: [] });
+    console.log('Firestore calls read warning:', error.message);
   }
+  return res.json({ calls });
 });
 
 // POST /webhook/voice/outbound-twiml - TwiML for outbound calls

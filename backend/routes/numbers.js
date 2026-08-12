@@ -76,18 +76,18 @@ router.post('/buy', verifyToken, async (req, res) => {
 
 // GET /api/numbers/my - Get user's numbers
 router.get('/my', verifyToken, async (req, res) => {
+  let numbers = [];
   try {
     const snapshot = await db.collection('virtualNumbers')
       .where('userId', '==', req.user.uid)
       .where('active', '==', true)
       .get();
 
-    const numbers = snapshot.docs.map(doc => doc.data());
-    return res.json({ numbers });
+    numbers = snapshot.docs.map(doc => doc.data());
   } catch (error) {
-    console.error('Get numbers error:', error);
-    return res.json({ numbers: [] });
+    console.log('Firestore numbers read warning:', error.message);
   }
+  return res.json({ numbers });
 });
 
 // DELETE /api/numbers/:sid - Release a number

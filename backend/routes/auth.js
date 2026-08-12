@@ -57,7 +57,16 @@ router.get('/profile', verifyToken, async (req, res) => {
       }
     });
   } catch (error) {
-    return res.status(500).json({ error: error.message });
+    console.error('Profile fetch warning:', error.message);
+    return res.json({
+      user: {
+        uid: req.user ? req.user.uid : 'guest',
+        email: req.user ? (req.user.email || '') : '',
+        displayName: '',
+        credits: 10,
+        numbers: []
+      }
+    });
   }
 });
 

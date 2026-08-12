@@ -59,6 +59,7 @@ router.post('/incoming', async (req, res) => {
 
 // GET /api/sms/inbox - Get user's SMS inbox
 router.get('/inbox', verifyToken, async (req, res) => {
+  let messages = [];
   try {
     const { number } = req.query;
     let query = db.collection('messages').where('userId', '==', req.user.uid);
@@ -68,15 +69,13 @@ router.get('/inbox', verifyToken, async (req, res) => {
     }
 
     const snapshot = await query.get();
-    let messages = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    messages = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
     messages.sort((a, b) => new Date(b.receivedAt || 0) - new Date(a.receivedAt || 0));
     if (messages.length > 50) messages = messages.slice(0, 50);
-
-    return res.json({ messages });
   } catch (error) {
-    console.error('Inbox fetch error:', error);
-    return res.json({ messages: [] });
+    console.log('Firestore inbox read warning:', error.message);
   }
+  return res.json({ messages });
 });
 
 // PATCH /api/sms/:id/read - Mark SMS as read
