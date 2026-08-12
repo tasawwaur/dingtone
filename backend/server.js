@@ -35,8 +35,13 @@ app.use('/api/calls', callRoutes);
 app.use('/webhook/sms', smsRoutes);
 app.use('/webhook/voice', callRoutes);
 
-// Health check
-app.get('/', (req, res) => {
+const path = require('path');
+
+// Static assets (Web Portal)
+app.use(express.static(path.join(__dirname, 'public')));
+
+// Health check API
+app.get('/api/health', (req, res) => {
   res.json({ 
     status: 'ok', 
     message: 'Dingtone Clone API is running! 🚀',

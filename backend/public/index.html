@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dingtone Clone - Web Calls & Virtual Numbers</title>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    body {
+      font-family: 'Outfit', sans-serif;
+      background: linear-gradient(135deg, #0F0C29 0%, #302B63 50%, #24243E 100%);
+      min-height: 100vh;
+      color: #fff;
+    }
+    .glass-card {
+      background: rgba(30, 27, 58, 0.75);
+      backdrop-filter: blur(16px);
+      border: 1px solid rgba(124, 92, 191, 0.25);
+      border-radius: 20px;
+    }
+    .glow-button {
+      background: linear-gradient(135deg, #7C5CBF 0%, #9D7CE0 100%);
+      box-shadow: 0 4px 20px rgba(124, 92, 191, 0.4);
+      transition: all 0.2s ease;
+    }
+    .glow-button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 25px rgba(124, 92, 191, 0.6);
+    }
+    .dial-btn {
+      background: rgba(48, 43, 99, 0.6);
+      border: 1px solid rgba(124, 92, 191, 0.3);
+      transition: all 0.15s ease;
+    }
+    .dial-btn:hover {
+      background: rgba(124, 92, 191, 0.4);
+      transform: scale(1.05);
+    }
+    .active-tab {
+      background: #7C5CBF;
+      color: white;
+    }
+  </style>
+</head>
+<body class="p-4 md:p-8">
+
+  <!-- AUTH MODAL / SCREEN -->
+  <div id="authScreen" class="flex items-center justify-center min-h-[90vh]">
+    <div class="glass-card p-8 w-full max-w-md shadow-2xl">
+      <div class="text-center mb-8">
+        <div class="w-16 h-16 bg-purple-600/30 rounded-2xl flex items-center justify-center mx-auto mb-3 border border-purple-500/40">
+          <i class="fa-solid fa-phone-volume text-3xl text-purple-400"></i>
+        </div>
+        <h1 class="text-3xl font-bold tracking-tight">Dingtone Web App</h1>
+        <p class="text-gray-400 text-sm mt-1">Make calls & receive SMS from virtual numbers</p>
+      </div>
+
+      <div class="space-y-4">
+        <div>
+          <label class="text-xs font-semibold text-purple-300 uppercase tracking-wider block mb-1">Email</label>
+          <div class="relative">
+            <i class="fa-solid fa-envelope absolute left-4 top-3.5 text-gray-400"></i>
+            <input type="email" id="authEmail" placeholder="admin@dingtone.com" class="w-full bg-slate-900/60 border border-purple-500/30 rounded-xl py-3 pl-11 pr-4 focus:outline-none focus:border-purple-500 text-white placeholder-gray-500">
+          </div>
+        </div>
+
+        <div>
+          <label class="text-xs font-semibold text-purple-300 uppercase tracking-wider block mb-1">Password</label>
+          <div class="relative">
+            <i class="fa-solid fa-lock absolute left-4 top-3.5 text-gray-400"></i>
+            <input type="password" id="authPassword" placeholder="••••••••" class="w-full bg-slate-900/60 border border-purple-500/30 rounded-xl py-3 pl-11 pr-4 focus:outline-none focus:border-purple-500 text-white placeholder-gray-500">
+          </div>
+        </div>
+
+        <div id="authError" class="text-red-400 text-sm hidden bg-red-950/40 p-3 rounded-xl border border-red-500/30"></div>
+
+        <div class="pt-2">
+          <button id="btnSignIn" onclick="handleAuth(false)" class="w-full glow-button py-3.5 font-bold rounded-xl text-white">
+            Sign In
+          </button>
+          <button id="btnSignUp" onclick="handleAuth(true)" class="w-full bg-purple-950/50 hover:bg-purple-900/50 border border-purple-500/30 text-purple-200 py-3 font-semibold rounded-xl mt-3 transition">
+            Create New Account
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MAIN APP CONTAINER -->
+  <div id="mainApp" class="max-w-6xl mx-auto hidden">
+    <!-- TOP BAR -->
+    <header class="glass-card p-4 md:p-6 mb-6 flex flex-col md:flex-row justify-between items-center gap-4">
+      <div class="flex items-center gap-3">
+        <div class="w-12 h-12 bg-purple-600/30 rounded-xl flex items-center justify-center border border-purple-500/40">
+          <i class="fa-solid fa-phone text-xl text-purple-400"></i>
+        </div>
+        <div>
+          <h2 class="text-xl font-bold flex items-center gap-2">
+            Dingtone Web
+            <span id="adminBadge" class="hidden text-xs bg-amber-500/20 border border-amber-500/40 text-amber-300 px-2.5 py-0.5 rounded-full font-bold">SUPER ADMIN 👑</span>
+          </h2>
+          <p id="userEmailText" class="text-xs text-gray-400"></p>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-3">
+        <div class="bg-amber-400/10 border border-amber-400/30 px-4 py-2 rounded-xl flex items-center gap-2">
+          <span class="text-xl">💰</span>
+          <span id="userCredits" class="font-bold text-amber-300 text-lg">0</span>
+          <span class="text-xs text-amber-200/60 uppercase">Credits</span>
+        </div>
+        <button onclick="claimBonus()" class="bg-purple-600/30 hover:bg-purple-600/50 text-purple-300 text-xs font-semibold border border-purple-500/40 px-3 py-2 rounded-xl flex items-center gap-1.5 transition">
+          <i class="fa-solid fa-gift text-amber-400"></i> Claim +5
+        </button>
+        <button onclick="signOutUser()" class="bg-red-500/20 hover:bg-red-500/30 text-red-300 text-xs font-semibold border border-red-500/30 px-3 py-2 rounded-xl flex items-center gap-1.5 transition">
+          <i class="fa-solid fa-right-from-bracket"></i> Logout
+        </button>
+      </div>
+    </header>
+
+    <!-- NAVIGATION TABS -->
+    <div class="flex gap-2 mb-6 overflow-x-auto pb-2">
+      <button onclick="switchTab('inbox')" id="tab-inbox" class="px-5 py-2.5 rounded-xl font-semibold text-sm transition flex items-center gap-2 active-tab">
+        <i class="fa-solid fa-inbox"></i> SMS Inbox
+      </button>
+      <button onclick="switchTab('call')" id="tab-call" class="px-5 py-2.5 rounded-xl font-semibold text-sm transition flex items-center gap-2 bg-slate-800/60 text-gray-300 hover:bg-slate-700/60">
+        <i class="fa-solid fa-phone"></i> Make Call
+      </button>
+      <button onclick="switchTab('numbers')" id="tab-numbers" class="px-5 py-2.5 rounded-xl font-semibold text-sm transition flex items-center gap-2 bg-slate-800/60 text-gray-300 hover:bg-slate-700/60">
+        <i class="fa-solid fa-sim-card"></i> Virtual Numbers
+      </button>
+      <button onclick="switchTab('send-sms')" id="tab-send-sms" class="px-5 py-2.5 rounded-xl font-semibold text-sm transition flex items-center gap-2 bg-slate-800/60 text-gray-300 hover:bg-slate-700/60">
+        <i class="fa-solid fa-paper-plane"></i> Send SMS
+      </button>
+    </div>
+
+    <!-- TAB 1: INBOX -->
+    <div id="content-inbox" class="glass-card p-6">
+      <div class="flex justify-between items-center mb-6">
+        <h3 class="text-lg font-bold flex items-center gap-2">
+          <i class="fa-solid fa-envelope text-purple-400"></i> Received SMS & OTPs
+        </h3>
+        <button onclick="loadInbox()" class="text-xs bg-purple-600/30 hover:bg-purple-600/50 border border-purple-500/40 text-purple-200 px-3 py-1.5 rounded-lg flex items-center gap-1.5">
+          <i class="fa-solid fa-rotate-right"></i> Refresh
+        </button>
+      </div>
+      <div id="smsList" class="space-y-3">
+        <div class="text-center py-12 text-gray-500">Loading inbox...</div>
+      </div>
+    </div>
+
+    <!-- TAB 2: MAKE CALL -->
+    <div id="content-call" class="hidden grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div class="glass-card p-6 flex flex-col justify-between">
+        <div>
+          <h3 class="text-lg font-bold mb-4 flex items-center gap-2">
+            <i class="fa-solid fa-phone text-purple-400"></i> Web Phone Dialer
+          </h3>
+
+          <div class="mb-4">
+            <label class="text-xs text-purple-300 block mb-1">Select Caller ID (Your Virtual Number)</label>
+            <select id="callFromSelect" class="w-full bg-slate-900/60 border border-purple-500/30 rounded-xl p-3 text-white focus:outline-none">
+              <option value="">Loading virtual numbers...</option>
+            </select>
+          </div>
+
+          <div class="mb-4">
+            <label class="text-xs text-purple-300 block mb-1">Recipient Number (To)</label>
+            <input type="text" id="callToInput" placeholder="+1234567890" class="w-full bg-slate-900/60 border border-purple-500/30 rounded-xl p-3 text-2xl font-bold tracking-wider text-center text-white focus:outline-none">
+          </div>
+
+          <!-- DIAL PAD -->
+          <div class="grid grid-cols-3 gap-3 my-6 max-w-xs mx-auto">
+            <button onclick="dialAdd('1')" class="dial-btn p-4 rounded-xl text-xl font-bold">1</button>
+            <button onclick="dialAdd('2')" class="dial-btn p-4 rounded-xl text-xl font-bold">2</button>
+            <button onclick="dialAdd('3')" class="dial-btn p-4 rounded-xl text-xl font-bold">3</button>
+            <button onclick="dialAdd('4')" class="dial-btn p-4 rounded-xl text-xl font-bold">4</button>
+            <button onclick="dialAdd('5')" class="dial-btn p-4 rounded-xl text-xl font-bold">5</button>
+            <button onclick="dialAdd('6')" class="dial-btn p-4 rounded-xl text-xl font-bold">6</button>
+            <button onclick="dialAdd('7')" class="dial-btn p-4 rounded-xl text-xl font-bold">7</button>
+            <button onclick="dialAdd('8')" class="dial-btn p-4 rounded-xl text-xl font-bold">8</button>
+            <button onclick="dialAdd('9')" class="dial-btn p-4 rounded-xl text-xl font-bold">9</button>
+            <button onclick="dialAdd('*')" class="dial-btn p-4 rounded-xl text-xl font-bold">*</button>
+            <button onclick="dialAdd('0')" class="dial-btn p-4 rounded-xl text-xl font-bold">0</button>
+            <button onclick="dialAdd('#')" class="dial-btn p-4 rounded-xl text-xl font-bold">#</button>
+          </div>
+        </div>
+
+        <button onclick="initiateCall()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-4 rounded-xl shadow-lg flex items-center justify-center gap-2 text-lg transition">
+          <i class="fa-solid fa-phone"></i> Initiate Call (Costs 1 Credit)
+        </button>
+      </div>
+
+      <div class="glass-card p-6">
+        <h3 class="text-lg font-bold mb-4 flex items-center gap-2">
+          <i class="fa-solid fa-clock-rotate-left text-purple-400"></i> Recent Call History
+        </h3>
+        <div id="callHistoryList" class="space-y-3">
+          <div class="text-center py-12 text-gray-500">Loading call history...</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 3: VIRTUAL NUMBERS -->
+    <div id="content-numbers" class="hidden space-y-6">
+      <div class="glass-card p-6">
+        <h3 class="text-lg font-bold mb-4 flex items-center gap-2">
+          <i class="fa-solid fa-shield-halved text-purple-400"></i> My Active Virtual Numbers
+        </h3>
+        <div id="myNumbersList" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="text-center py-8 text-gray-500">Loading numbers...</div>
+        </div>
+      </div>
+
+      <div class="glass-card p-6">
+        <h3 class="text-lg font-bold mb-4 flex items-center gap-2">
+          <i class="fa-solid fa-cart-shopping text-purple-400"></i> Buy New Virtual Number (5 Credits)
+        </h3>
+        <div id="availableNumbersList" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div class="text-center py-8 text-gray-500 col-span-3">Searching available numbers...</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 4: SEND SMS -->
+    <div id="content-send-sms" class="hidden glass-card p-6 max-w-xl mx-auto">
+      <h3 class="text-lg font-bold mb-4 flex items-center gap-2">
+        <i class="fa-solid fa-paper-plane text-purple-400"></i> Send Outbound SMS
+      </h3>
+      <div class="space-y-4">
+        <div>
+          <label class="text-xs text-purple-300 block mb-1">From Number</label>
+          <select id="smsFromSelect" class="w-full bg-slate-900/60 border border-purple-500/30 rounded-xl p-3 text-white focus:outline-none"></select>
+        </div>
+        <div>
+          <label class="text-xs text-purple-300 block mb-1">To Number</label>
+          <input type="text" id="smsToInput" placeholder="+1234567890" class="w-full bg-slate-900/60 border border-purple-500/30 rounded-xl p-3 text-white focus:outline-none">
+        </div>
+        <div>
+          <label class="text-xs text-purple-300 block mb-1">Message Text</label>
+          <textarea id="smsBodyInput" rows="4" placeholder="Hello from Dingtone!" class="w-full bg-slate-900/60 border border-purple-500/30 rounded-xl p-3 text-white focus:outline-none"></textarea>
+        </div>
+        <button onclick="sendSms()" class="w-full glow-button py-3.5 font-bold rounded-xl text-white">
+          Send SMS (1 Credit)
+        </button>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- FIREBASE & APP JS -->
+  <script type="module">
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js';
+    import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js';
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyDswz2wgCxcUdrchf0XSYjRdvxRHsDOHWY",
+      authDomain: "dingtone-clone.firebaseapp.com",
+      projectId: "dingtone-clone",
+      storageBucket: "dingtone-clone.firebasestorage.app",
+      messagingSenderId: "421864268048",
+      appId: "1:421864268048:web:be770efa53734b6a178595"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+
+    window.currentUserToken = null;
+
+    onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        window.currentUserToken = await user.getIdToken();
+        document.getElementById('authScreen').classList.add('hidden');
+        document.getElementById('mainApp').classList.remove('hidden');
+        document.getElementById('userEmailText').innerText = user.email;
+        loadProfile();
+        loadInbox();
+        loadMyNumbers();
+        loadAvailableNumbers();
+        loadCallHistory();
+      } else {
+        window.currentUserToken = null;
+        document.getElementById('authScreen').classList.remove('hidden');
+        document.getElementById('mainApp').classList.add('hidden');
+      }
+    });
+
+    window.handleAuth = async (isSignUp) => {
+      const email = document.getElementById('authEmail').value.trim();
+      const password = document.getElementById('authPassword').value;
+      const errDiv = document.getElementById('authError');
+      errDiv.classList.add('hidden');
+
+      if (!email || !password) {
+        errDiv.innerText = "Please enter email and password";
+        errDiv.classList.remove('hidden');
+        return;
+      }
+
+      try {
+        if (isSignUp) {
+          await createUserWithEmailAndPassword(auth, email, password);
+        } else {
+          await signInWithEmailAndPassword(auth, email, password);
+        }
+      } catch (err) {
+        errDiv.innerText = err.message;
+        errDiv.classList.remove('hidden');
+      }
+    };
+
+    window.signOutUser = () => signOut(auth);
+
+    async function apiFetch(endpoint, options = {}) {
+      const token = window.currentUserToken || (auth.currentUser ? await auth.currentUser.getIdToken() : '');
+      const headers = { 'Content-Type': 'application/json', ...(options.headers || {}) };
+      if (token) headers['Authorization'] = `Bearer ${token}`;
+
+      const res = await fetch(`/api${endpoint}`, { ...options, headers });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Request failed');
+      return data;
+    }
+
+    window.loadProfile = async () => {
+      try {
+        const res = await apiFetch('/auth/profile');
+        document.getElementById('userCredits').innerText = res.user.credits;
+        if (res.user.isAdmin) {
+          document.getElementById('adminBadge').classList.remove('hidden');
+        } else {
+          document.getElementById('adminBadge').classList.add('hidden');
+        }
+      } catch (e) {
+        console.error(e);
+      }
+    };
+
+    window.claimBonus = async () => {
+      try {
+        const res = await apiFetch('/auth/claim-credits', { method: 'POST' });
+        alert(res.message);
+        loadProfile();
+      } catch (e) {
+        alert(e.message);
+      }
+    };
+
+    window.loadInbox = async () => {
+      const container = document.getElementById('smsList');
+      container.innerHTML = '<div class="text-center py-8 text-gray-500">Loading inbox...</div>';
+      try {
+        const res = await apiFetch('/sms/inbox');
+        if (!res.messages || res.messages.length === 0) {
+          container.innerHTML = `
+            <div class="text-center py-12">
+              <i class="fa-solid fa-inbox text-4xl text-purple-500/30 mb-2"></i>
+              <p class="text-gray-400">No messages received yet</p>
+            </div>`;
+          return;
+        }
+
+        container.innerHTML = res.messages.map(msg => `
+          <div class="bg-slate-900/60 border border-purple-500/20 p-4 rounded-xl flex items-start gap-4">
+            <div class="w-10 h-10 rounded-full bg-purple-600/30 flex items-center justify-center font-bold text-purple-300">
+              ${msg.from.slice(-2)}
+            </div>
+            <div class="flex-1">
+              <div class="flex justify-between items-center mb-1">
+                <span class="font-bold text-sm text-purple-200">${msg.from}</span>
+                <span class="text-xs text-gray-500">${msg.receivedAt ? msg.receivedAt.take ? msg.receivedAt.take(19) : msg.receivedAt : ''}</span>
+              </div>
+              <p class="text-xs text-purple-300/60 mb-2">To: ${msg.to}</p>
+              <p class="text-sm text-gray-200 bg-slate-950/40 p-3 rounded-lg border border-slate-800">${msg.body}</p>
+            </div>
+          </div>
+        `).join('');
+      } catch (e) {
+        container.innerHTML = `<div class="text-center text-red-400 py-4">${e.message}</div>`;
+      }
+    };
+
+    window.loadMyNumbers = async () => {
+      try {
+        const res = await apiFetch('/numbers/my');
+        const list = res.numbers || [];
+
+        const myNumsList = document.getElementById('myNumbersList');
+        const callSelect = document.getElementById('callFromSelect');
+        const smsSelect = document.getElementById('smsFromSelect');
+
+        if (list.length === 0) {
+          myNumsList.innerHTML = '<div class="col-span-2 text-center text-gray-500 py-6">No virtual numbers purchased yet</div>';
+          callSelect.innerHTML = '<option value="">No numbers available</option>';
+          smsSelect.innerHTML = '<option value="">No numbers available</option>';
+          return;
+        }
+
+        myNumsList.innerHTML = list.map(n => `
+          <div class="bg-slate-900/60 border border-purple-500/30 p-4 rounded-xl flex justify-between items-center">
+            <div>
+              <p class="font-bold text-lg text-purple-200">${n.phoneNumber}</p>
+              <p class="text-xs text-gray-400">${n.friendlyName || 'Virtual Number'}</p>
+            </div>
+            <span class="text-xs bg-emerald-500/20 text-emerald-300 px-2.5 py-1 rounded-full border border-emerald-500/30">Active</span>
+          </div>
+        `).join('');
+
+        const options = list.map(n => `<option value="${n.phoneNumber}">${n.phoneNumber}</option>`).join('');
+        callSelect.innerHTML = options;
+        smsSelect.innerHTML = options;
+      } catch (e) {
+        console.error(e);
+      }
+    };
+
+    window.loadAvailableNumbers = async () => {
+      try {
+        const res = await apiFetch('/numbers/available');
+        const list = res.numbers || [];
+        const container = document.getElementById('availableNumbersList');
+
+        if (list.length === 0) {
+          container.innerHTML = '<div class="col-span-3 text-center text-gray-500 py-6">No numbers found</div>';
+          return;
+        }
+
+        container.innerHTML = list.map(n => `
+          <div class="bg-slate-900/60 border border-purple-500/20 p-4 rounded-xl flex flex-col justify-between">
+            <div>
+              <p class="font-bold text-base text-white">${n.phoneNumber}</p>
+              <p class="text-xs text-gray-400 mb-3">${n.region || 'US Local'}</p>
+            </div>
+            <button onclick="buyNumber('${n.phoneNumber}')" class="w-full bg-purple-600/40 hover:bg-purple-600 border border-purple-500/40 py-2 rounded-lg text-xs font-bold transition">
+              Buy (5 Credits)
+            </button>
+          </div>
+        `).join('');
+      } catch (e) {
+        console.error(e);
+      }
+    };
+
+    window.buyNumber = async (num) => {
+      try {
+        const res = await apiFetch('/numbers/buy', {
+          method: 'POST',
+          body: JSON.stringify({ phoneNumber: num })
+        });
+        alert(res.message);
+        loadProfile();
+        loadMyNumbers();
+      } catch (e) {
+        alert(e.message);
+      }
+    };
+
+    window.initiateCall = async () => {
+      const from = document.getElementById('callFromSelect').value;
+      const to = document.getElementById('callToInput').value.trim();
+
+      if (!from || !to) {
+        alert("Please select your virtual number and enter recipient number");
+        return;
+      }
+
+      try {
+        const res = await apiFetch('/calls/make', {
+          method: 'POST',
+          body: JSON.stringify({ from, to })
+        });
+        alert(`🎉 Call Initiated successfully! Status: ${res.status}`);
+        loadProfile();
+        loadCallHistory();
+      } catch (e) {
+        alert(e.message);
+      }
+    };
+
+    window.loadCallHistory = async () => {
+      const container = document.getElementById('callHistoryList');
+      try {
+        const res = await apiFetch('/calls/history');
+        const calls = res.calls || [];
+        if (calls.length === 0) {
+          container.innerHTML = '<div class="text-center py-8 text-gray-500">No call history</div>';
+          return;
+        }
+
+        container.innerHTML = calls.map(c => `
+          <div class="bg-slate-900/60 border border-purple-500/20 p-3 rounded-xl flex justify-between items-center">
+            <div>
+              <p class="font-bold text-sm text-white">To: ${c.to}</p>
+              <p class="text-xs text-gray-400">From: ${c.from}</p>
+            </div>
+            <span class="text-xs font-mono bg-purple-950/60 text-purple-300 px-2 py-1 rounded">${c.status || 'queued'}</span>
+          </div>
+        `).join('');
+      } catch (e) {
+        console.error(e);
+      }
+    };
+
+    window.sendSms = async () => {
+      const from = document.getElementById('smsFromSelect').value;
+      const to = document.getElementById('smsToInput').value.trim();
+      const body = document.getElementById('smsBodyInput').value.trim();
+
+      if (!from || !to || !body) {
+        alert("Please fill in all fields");
+        return;
+      }
+
+      try {
+        const res = await apiFetch('/sms/send', {
+          method: 'POST',
+          body: JSON.stringify({ from, to, body })
+        });
+        alert(res.message);
+        loadProfile();
+        document.getElementById('smsBodyInput').value = '';
+      } catch (e) {
+        alert(e.message);
+      }
+    };
+
+    window.dialAdd = (val) => {
+      const input = document.getElementById('callToInput');
+      input.value += val;
+    };
+
+    window.switchTab = (tabName) => {
+      ['inbox', 'call', 'numbers', 'send-sms'].forEach(t => {
+        const content = document.getElementById(`content-${t}`);
+        const btn = document.getElementById(`tab-${t}`);
+        if (t === tabName) {
+          content.classList.remove('hidden');
+          btn.classList.add('active-tab');
+          btn.classList.remove('bg-slate-800/60', 'text-gray-300');
+        } else {
+          content.classList.add('hidden');
+          btn.classList.remove('active-tab');
+          btn.classList.add('bg-slate-800/60', 'text-gray-300');
+        }
+      });
+    };
+  </script>
+</body>
+</html>
