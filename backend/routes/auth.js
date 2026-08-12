@@ -23,19 +23,39 @@ router.get('/profile', verifyToken, async (req, res) => {
       return res.json({ user: adminProfile });
     }
 
-    const userDoc = await db.collection('users').doc(req.user.uid).get().catch(() => null);
+    let userDoc = null;
+    try {
+      userDoc = await db.collection('users').doc(req.user.uid).get();
+    } catch (dbErr) {
+      console.log('Firestore read warning:', dbErr.message);
+    }
+
     if (!userDoc || !userDoc.exists) {
       const userData = {
         uid: req.user.uid,
         email: req.user.email,
+        displayName: '',
         createdAt: new Date().toISOString(),
         credits: 10, // 10 initial bonus credits for normal users
         numbers: [],
         lastClaimAt: null
       };
+      // Try to save to Firestore asynchronously
+      db.collection('users').doc(req.user.uid).set(userData, { merge: true }).catch(() => null);
       return res.json({ user: userData });
     }
-    return res.json({ user: userDoc.data() });
+
+    const data = userDoc.data() || {};
+    return res.json({
+      user: {
+        uid: req.user.uid,
+        email: req.user.email,
+        displayName: data.displayName || '',
+        credits: data.credits !== undefined && data.credits !== null ? data.credits : 10,
+        numbers: data.numbers || [],
+        lastClaimAt: data.lastClaimAt || null
+      }
+    });
   } catch (error) {
     return res.status(500).json({ error: error.message });
   }
