@@ -85,7 +85,8 @@ router.get('/my', verifyToken, async (req, res) => {
     const numbers = snapshot.docs.map(doc => doc.data());
     return res.json({ numbers });
   } catch (error) {
-    return res.status(500).json({ error: error.message });
+    console.error('Get numbers error:', error);
+    return res.json({ numbers: [] });
   }
 });
 

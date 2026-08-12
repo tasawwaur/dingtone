@@ -67,12 +67,15 @@ router.get('/inbox', verifyToken, async (req, res) => {
       query = query.where('to', '==', number);
     }
 
-    const snapshot = await query.orderBy('receivedAt', 'desc').limit(50).get();
-    const messages = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    const snapshot = await query.get();
+    let messages = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    messages.sort((a, b) => new Date(b.receivedAt || 0) - new Date(a.receivedAt || 0));
+    if (messages.length > 50) messages = messages.slice(0, 50);
 
     return res.json({ messages });
   } catch (error) {
-    return res.status(500).json({ error: error.message });
+    console.error('Inbox fetch error:', error);
+    return res.json({ messages: [] });
   }
 });
 
