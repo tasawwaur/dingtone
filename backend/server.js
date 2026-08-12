@@ -47,14 +47,21 @@ const publicPath = fs.existsSync(path.join(__dirname, 'public'))
 
 app.use(express.static(publicPath));
 
+const candidateIndexPaths = [
+  path.join(__dirname, 'public', 'index.html'),
+  path.join(process.cwd(), 'public', 'index.html'),
+  path.join(process.cwd(), 'backend', 'public', 'index.html'),
+  path.join(process.cwd(), 'index.html')
+];
+
 // Web Portal main route
 app.get('/', (req, res) => {
-  const indexPath = path.join(publicPath, 'index.html');
-  if (fs.existsSync(indexPath)) {
-    res.sendFile(indexPath);
-  } else {
-    res.json({ status: 'ok', message: 'Dingtone Clone API is running! 🚀', version: '1.0.0' });
+  for (const p of candidateIndexPaths) {
+    if (fs.existsSync(p)) {
+      return res.sendFile(p);
+    }
   }
+  res.json({ status: 'ok', message: 'Dingtone Clone API is running! 🚀', version: '1.0.0' });
 });
 
 // Health check API
